@@ -1,0 +1,99 @@
+﻿@page "/"
+@using WebChatClientWebSite.Data;
+@using WebChatClientWebSite.Models;
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<div class="login-form container d-flex justify-content-center align-items-center vh-100">
+    <form>
+        <div class="container justify-content-center align-content-center">
+            <h2 class="text-center white-text-color">Create or log in your account</h2>
+        </div>
+        <div>
+            <h3 class="error-text text-center">@dangerText</h3>
+            <h3 class="good-text text-center">@goodText</h3>
+        </div>
+        <div class="mb-3">
+            <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="userNameHelp"
+            placeholder="UserName" @bind="userName">
+            <div id="userNameHelp" class="form-text white-text-color">We'll never share your email with anyone else.</div>
+        </div>
+        <div class="mb-3">
+            <input type="password" id="inputPassword5" class="form-control" aria-describedby="passwordHelpBlock"
+                   placeholder="Password" @bind="password">
+            <div id="passwordHelpBlock" class="form-text white-text-color">
+                Your password must be 8-20 characters long, contain letters and numbers.
+            </div>
+        </div>
+        <div class="row">
+            <button class="col btn btn-form" @onclick:preventDefault="true" @onclick="RegistrAccount">Registration</button>
+            <button class="col btn btn-form" @onclick:preventDefault="true" @onclick="LogInAccount">Log in</button>
+        </div>
+    </form>
+</div>
+
+
+
+@code {
+    string? dangerText;
+    string? goodText;
+
+    string userName = "";
+    string password = "";
+
+    async Task LogInAccount()
+    {
+        try
+        {
+            CreateUser newUser = new CreateUser()
+            {
+                UserName = userName,
+                Password = password
+            };
+
+            var response = await Http.PostAsJsonAsync($"{AppSettings.ApiUrl}/api/User/Login/", newUser);
+            if (!response.IsSuccessStatusCode)
+            {
+                dangerText = await response.Content.ReadAsStringAsync();
+            } else
+            {
+                dangerText = "";
+                goodText = "Good";
+                NavigationManager.NavigateTo("/Index");
+            }
+        } catch (Exception e)
+        {
+            dangerText = e.Message;
+            goodText = "";
+        }
+    }
+    async Task RegistrAccount()
+    {
+        try
+        {
+            CreateUser newUser = new CreateUser()
+                {
+                    UserName = userName,
+                    Password = password
+                };
+
+            var response = await Http.PostAsJsonAsync($"{AppSettings.ApiUrl}/api/User/Registr/", newUser);
+            if (!response.IsSuccessStatusCode)
+            {
+                dangerText = await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                dangerText = "";
+                goodText = "Good";
+                NavigationManager.NavigateTo("/");
+            }
+        }
+        catch (Exception e)
+        {
+            dangerText = e.Message;
+            goodText = "";
+        }
+    }
+
+}

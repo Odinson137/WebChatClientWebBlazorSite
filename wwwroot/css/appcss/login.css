@@ -1,0 +1,49 @@
+﻿.main-login {
+    max-width: 800px;
+}
+
+.login-form {
+    max-width: 420px;
+}
+
+.white-text-color {
+    opacity: 70%;
+    color: white;
+}
+
+.btn-form {
+    box-shadow: none;
+    margin: 5px;
+    background: #268e9c;
+    color: white;
+    border-color: #268e9c;
+}
+
+    .btn-form:hover {
+        background: #268e9c;
+        color: white;
+        border-color: #246973;
+    }
+
+    .btn-form:focus {
+        box-shadow: none;
+    }
+
+    .btn-form:active:focus {
+        box-shadow: none;
+    }
+
+    .btn-form:focus-visible {
+        box-shadow: none;
+    }
+
+.error-text {
+    color: red;
+    opacity: 70%;
+    font-size: 14pt;
+}
+
+.good-text {
+    color: #268e9c;
+    font-size: 14pt;
+}
