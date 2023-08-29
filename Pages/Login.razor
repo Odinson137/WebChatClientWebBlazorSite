@@ -1,8 +1,10 @@
 ﻿@page "/"
+@using System.Net.Http.Headers;
 @using WebChatClientWebSite.Data;
 @using WebChatClientWebSite.Models;
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <div class="login-form container d-flex justify-content-center align-items-center vh-100">
     <form>
@@ -59,6 +61,12 @@
             {
                 dangerText = "";
                 goodText = "Good";
+
+                var responseData = await response.Content.ReadFromJsonAsync<UserDTO>();
+
+                await localStorage.SetItemAsync("userId", responseData.Id);
+                await localStorage.SetItemAsync("userToken", responseData.Token );
+
                 NavigationManager.NavigateTo("/Index");
             }
         } catch (Exception e)
@@ -85,8 +93,7 @@
             else
             {
                 dangerText = "";
-                goodText = "Good";
-                NavigationManager.NavigateTo("/");
+                goodText = "Succecfully registration";
             }
         }
         catch (Exception e)
