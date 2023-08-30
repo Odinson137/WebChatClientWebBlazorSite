@@ -1,4 +1,4 @@
-﻿.chat-list {
+﻿.chat-title-list {
     max-width: 160px;
     border: none;
     font-size: 20px;
@@ -13,8 +13,12 @@
     transition: 0.2s;
 }
 
-.chat-item:hover {
-    background: rgba(0, 0, 0, 0.25);
+    .chat-item:hover {
+        background-color: #35353530;
+    }
+
+.chat-selected {
+    background-color: #35353530;
 }
 
 .chat-title {
@@ -50,4 +54,43 @@
 
 .chat-title {
     font-size: 14pt;
+}
+
+.chat-list {
+    overflow-y: scroll;
+    height: 70vh;
+    scrollbar-color: transparent transparent
+}
+    .chat-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-list::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.3);
+        border-radius: 6px;
+    }
+    
+    .chat-list::-webkit-scrollbar::-ms-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.8);
+    }
+
+    .chat-list::-webkit-scrollbar-track-piece:start {
+        background-color: transparent;
+    }
+
+.message {
+    margin: 5px 0px;
+    padding: 6px 15px;
+    border-radius: 12px 12px 12px 0px;
+    color: white;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.message-line {
+    display: flex;
+    width: 100%;
+}
+
+.right {
+    margin-left: auto;
 }

@@ -1,4 +1,5 @@
-﻿namespace WebChatClientWebSite.Models
+﻿
+namespace WebChatClientWebSite.Models
 {
     public class Message
     {

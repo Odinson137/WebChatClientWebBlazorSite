@@ -1,26 +1,33 @@
-﻿@page "/Index"
+﻿@page "/Index/{userName}"
 @using System.Net.Http.Headers;
 @using WebChatClientWebSite.Data;
 @using WebChatClientWebSite.Models;
 @inject HttpClient Http
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Index</PageTitle>
 
 <div class="header container-fluid">
     <div class="row">
-        <div class="d-flex container-fluid col-1 tab selected-tab justify-content-center align-items-center">
+        <div class="d-flex container-fluid col-1 tab selected-tab justify-content-center align-items-center" @onclick="Exit">
             Home
         </div>
         <div class="col">
             <div class="row">
                 <div class="d-flex col-1 tab align-items-center">
-                    Test
+                    @if (SelectedChat != null)
+                    {
+                        @SelectedChat.Title
+                    }
                 </div>
             </div>
         </div>
         <div class="d-flex container-fluid col-1 tab justify-content-center align-items-center">
-            Yuri
+            @if (!string.IsNullOrEmpty(UserName)) {
+                @UserName
+            }
         </div>
     </div>
 </div>
@@ -30,12 +37,12 @@
         <div class="title chat-title d-flex justify-content-center align-items-center">
             Chats
         </div>
-        <div class="chat-list">
+        <div class="chat-title-list">
             @if (chats != null)
             {
                 @foreach (Chat chat in chats)
                 {
-                    <TitleChatComponent ChatId="@chat.ChatId" ChatTitle="@chat.Title" OnChatClick="HandleTTitleChatClick" />
+                    <TitleChatComponent ChatId="@chat.ChatId" SelectedChat="@SelectedChat" ChatTitle="@chat.Title" OnChatClick="HandleTTitleChatClick" />
                 }
             }
 
@@ -49,12 +56,12 @@
                 @SelectedChat.Title
             }
         </div>
-        <div>
+        <div class="chat-list" @ref="chatListRef">
             @if (SelectedChat != null && SelectedChat.Messages != null)
             {
                 @foreach (Message message in SelectedChat.Messages)
                 {
-                    <h3>@message.text</h3>
+                    <MessageComponent Message="@message" Users="@SelectedChat.Users" User="@User"/>
                 }
             }
         </div>
@@ -65,26 +72,50 @@
             Chat
         </div>
     </div>
-
-
 </div>
 
 
 
 @code {
+    [Parameter] public string? UserName { get; set; }
+
+    User User { get; set; } = null!;
     ICollection<Chat> chats = null!;
     Chat? SelectedChat { get; set; }
+    private ElementReference chatListRef;
 
-    protected override async Task OnInitializedAsync() => await GetChatsAsync();
-    string? id;
-    string? token;
+    protected override async Task OnInitializedAsync()
+    {
+        string id = await localStorage.GetItemAsync<string>("userId");
+        string token = await localStorage.GetItemAsync<string>("userToken");
+        string userName = await localStorage.GetItemAsync<string>("userName");
+
+        User = new User()
+            {
+                Id = id,
+                Token = token,
+                UserName = userName
+            };
+
+        if (!string.IsNullOrEmpty(UserName) && UserName == userName)
+        {
+            await GetChatsAsync();
+        } else
+        {
+            throw new ArgumentException("UserName is required.");
+        }
+    }
+
+
+    private async Task OnAfterRenderAsync()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollToBottom", chatListRef);
+    }
+
     private async Task GetChatsAsync()
     {
-        id = await localStorage.GetItemAsync<string>("userId");
-        token = await localStorage.GetItemAsync<string>("userToken");
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{AppSettings.ApiUrl}/api/Chat/{id}");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{AppSettings.ApiUrl}/api/Chat/{User.Id}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", User.Token);
         var response = await Http.SendAsync(request);
 
         if (response.IsSuccessStatusCode)
@@ -100,7 +131,7 @@
         if (SelectedChat.Messages == null)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"{AppSettings.ApiUrl}/api/Message/{chatId}");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", User.Token);
             var response = await Http.SendAsync(request);
 
             Console.WriteLine(response);
@@ -111,11 +142,16 @@
                 {
                     SelectedChat.Messages = await response.Content.ReadFromJsonAsync<ICollection<Message>>()
                                                                                         ?? new List<Message>();
-                    Console.WriteLine(SelectedChat.Messages);
+                    await OnAfterRenderAsync();
                 }
             }
         }
     }
 
-
+    private async Task Exit()
+    {
+        NavigationManager.NavigateTo($"/");
+        await localStorage.SetItemAsync("userName", "");
+    }
 }
+

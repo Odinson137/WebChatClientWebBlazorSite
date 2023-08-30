@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Components
-<div class="chat-item" @onclick="OpenChat">
+@using WebChatClientWebSite.Models;
+<div class="chat-item @GetSelectedChat(ChatId)" @onclick="OpenChat">
     <div class="chat-title">@ChatTitle</div>
 </div>
 
@@ -11,10 +12,20 @@
     public string ChatTitle { get; set; } = null!;
 
     [Parameter]
+    public Chat? SelectedChat { get; set; }
+
+    [Parameter]
     public EventCallback<int> OnChatClick { get; set; }
 
     private async Task OpenChat()
     {
         await OnChatClick.InvokeAsync(ChatId);
+    }
+
+    private string GetSelectedChat(int chatId)
+    {
+        if (SelectedChat != null && SelectedChat.ChatId == chatId)
+            return "chat-selected";
+        else return "";
     }
 }

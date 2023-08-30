@@ -65,9 +65,9 @@
                 var responseData = await response.Content.ReadFromJsonAsync<UserDTO>();
 
                 await localStorage.SetItemAsync("userId", responseData.Id);
-                await localStorage.SetItemAsync("userToken", responseData.Token );
-
-                NavigationManager.NavigateTo("/Index");
+                await localStorage.SetItemAsync("userName", newUser.UserName);
+                await localStorage.SetItemAsync("userToken", responseData.Token);
+                NavigationManager.NavigateTo($"/Index/{newUser.UserName}");
             }
         } catch (Exception e)
         {
