@@ -1,0 +1,31 @@
+﻿@inject IJSRuntime JSRuntime
+
+<link href="css//appcss/textbox.css" rel="stylesheet" />
+
+<div class="text-message-box-menu">
+    <div class="text-box-container">
+        <textarea id="messageBox" rows="1" placeholder="Send a message" @bind="messageText" oninput="autoResize(this)" @ref="messageTextRef"></textarea>
+        <button id="sendButton" @onclick="ClickSendButton">
+            <img src="/images/send.png" alt="Send"/>
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<string> OnSendMessageClick { get; set; }
+
+    private ElementReference messageTextRef;
+
+    string? messageText;
+
+    private async Task ClickSendButton()
+    {
+        if (!string.IsNullOrEmpty(messageText))
+        {
+            await OnSendMessageClick.InvokeAsync(messageText);
+            messageText = "";
+        }
+    }
+
+}

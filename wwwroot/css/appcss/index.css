@@ -21,6 +21,10 @@
     background-color: #35353530;
 }
 
+.chat-menu {
+    padding: 0px;
+}
+
 .chat-title {
     margin-left: 10px;
     color: white;
@@ -57,8 +61,10 @@
 }
 
 .chat-list {
+    margin: 0px 10px;
     overflow-y: scroll;
-    height: 70vh;
+    height: 80vh;
+    padding: 0px 0px 50px 0px;
     scrollbar-color: transparent transparent
 }
     .chat-list::-webkit-scrollbar {
@@ -89,8 +95,40 @@
 .message-line {
     display: flex;
     width: 100%;
+    padding: 0px 10px;
+    margin: 0px;
 }
 
 .right {
     margin-left: auto;
+    border-radius: 12px 12px 0px 12px;
+}
+
+.message-username {
+    padding: 0px;
+    margin: 0px;
+    color: #268e9c;
+}
+
+.message-text {
+    padding: 0px;
+    margin: 0px;
+    opacity: 90%;
+}
+.message-time {
+    padding: 0px;
+    margin: 0px;
+    opacity: 60%;
+    text-align: right;
+}
+
+.chat-textblock {
+    position: relative;
+}
+
+.absolute-textblock {
+    padding: 0px;
+    margin: 0px;
+    bottom: 0px;
+    position: absolute;
 }

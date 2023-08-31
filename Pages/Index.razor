@@ -1,7 +1,9 @@
 ﻿@page "/Index/{userName}"
 @using System.Net.Http.Headers;
+@using System.Text;
 @using WebChatClientWebSite.Data;
 @using WebChatClientWebSite.Models;
+@using System.Text.Json;
 @inject HttpClient Http
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager NavigationManager
@@ -56,15 +58,26 @@
                 @SelectedChat.Title
             }
         </div>
-        <div class="chat-list" @ref="chatListRef">
-            @if (SelectedChat != null && SelectedChat.Messages != null)
-            {
-                @foreach (Message message in SelectedChat.Messages)
+
+        <div class="chat-textblock">
+            <div class="chat-list" @ref="chatListRef" id="chatListRef">
+                @if (SelectedChat != null && SelectedChat.Messages != null)
                 {
-                    <MessageComponent Message="@message" Users="@SelectedChat.Users" User="@User"/>
+                    @foreach (Message message in SelectedChat.Messages)
+                    {
+                        <MessageComponent Message="@message" Users="@SelectedChat.Users" User="@User" />
+                    }
                 }
-            }
+            </div>
+            <div class="container absolute-textblock">
+                @if (SelectedChat != null && SelectedChat.Messages != null)
+                {
+                    <TextBoxComponent OnSendMessageClick="HandleSendMessageClick"></TextBoxComponent>
+                }
+            </div>
         </div>
+
+
     </div>
 
     <div class="chat-info col">
@@ -104,11 +117,7 @@
         {
             throw new ArgumentException("UserName is required.");
         }
-    }
 
-
-    private async Task OnAfterRenderAsync()
-    {
         await JSRuntime.InvokeVoidAsync("scrollToBottom", chatListRef);
     }
 
@@ -121,6 +130,8 @@
         if (response.IsSuccessStatusCode)
         {
             chats = await response.Content.ReadFromJsonAsync<ICollection<Chat>>() ?? new List<Chat>();
+            if (chats.Count > 0)
+                await HandleTTitleChatClick(chats.Select(chat => chat.ChatId).First());
         } 
     }
 
@@ -134,23 +145,48 @@
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", User.Token);
             var response = await Http.SendAsync(request);
 
-            Console.WriteLine(response);
-
             if (response.IsSuccessStatusCode)
             {
                 if (SelectedChat != null)
                 {
                     SelectedChat.Messages = await response.Content.ReadFromJsonAsync<ICollection<Message>>()
                                                                                         ?? new List<Message>();
-                    await OnAfterRenderAsync();
                 }
             }
         }
     }
 
+    private async Task HandleSendMessageClick(string text)
+    {
+        if (SelectedChat == null) return;
+
+        Message newMessage = new Message()
+        {
+            ChatId = SelectedChat.ChatId,
+            Id = User.Id,
+            SendTime = DateTime.Now,
+            Text = text
+        };
+
+        Console.WriteLine(text);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{AppSettings.ApiUrl}/api/Message/");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", User.Token);
+
+        string newMessageJson = JsonSerializer.Serialize(newMessage);
+        request.Content = new StringContent(newMessageJson, Encoding.UTF8, "application/json");
+
+        var response = await Http.SendAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            SelectedChat.Messages?.Add(newMessage);
+        }
+    }
+
     private async Task Exit()
     {
-        NavigationManager.NavigateTo($"/");
+        NavigationManager.NavigateTo("/");
         await localStorage.SetItemAsync("userName", "");
     }
 }
