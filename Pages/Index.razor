@@ -4,6 +4,7 @@
 @using WebChatClientWebSite.Data;
 @using WebChatClientWebSite.Models;
 @using System.Text.Json;
+@using Microsoft.AspNetCore.SignalR.Client
 @inject HttpClient Http
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager NavigationManager
@@ -97,6 +98,8 @@
     Chat? SelectedChat { get; set; }
     private ElementReference chatListRef;
 
+    public HubConnection connection = null!;
+
     protected override async Task OnInitializedAsync()
     {
         string id = await localStorage.GetItemAsync<string>("userId");
@@ -110,6 +113,11 @@
                 UserName = userName
             };
 
+        await ConnectionServer();
+        if (!IsConnected) throw new ArgumentException("No connection");
+
+
+
         if (!string.IsNullOrEmpty(UserName) && UserName == userName)
         {
             await GetChatsAsync();
@@ -119,6 +127,66 @@
         }
 
         await JSRuntime.InvokeVoidAsync("scrollToBottom", chatListRef);
+    }
+
+    public bool IsConnected =>
+        connection.State == HubConnectionState.Connected;
+
+    private async Task ConnectionServer()
+    {
+        connection = new HubConnectionBuilder()
+                .WithUrl($"{AppSettings.ApiUrl}/chat")
+                .Build();
+
+        connection.On<string, int, string>("OnReceiveMessage", (userSendId, chatSendId, sendMessage) =>
+        {
+            var chat = chats.Where(chat => chat.ChatId == chatSendId).First();
+            var newMessage = new Message()
+            {
+                Id = userSendId,
+                Text = sendMessage,
+                SendTime = DateTime.Now
+            };
+            chat.Messages.Add(newMessage);
+
+            InvokeAsync(StateHasChanged);
+        });
+
+        connection.On<int, string, ICollection<ChatUser>>("OnReceiveInvitation", (chatId, title, users) =>
+        {
+            var beChat = chats.Where(chat => chat.ChatId == chatId).FirstOrDefault();
+            if (beChat != null)
+                beChat.Users = users;
+            else
+            {
+                var newChat = new Chat()
+                    {
+                        ChatId = chatId,
+                        Title = title,
+                        Users = users,
+                        Messages = new List<Message>()
+                    };
+
+                chats.Add(newChat);
+            }
+        });
+
+        await Connecting();
+    }
+
+    private async Task Connecting()
+    {
+        try
+        {
+            Console.WriteLine(connection);
+            Console.WriteLine(User);
+            await connection.StartAsync();
+            await connection.InvokeAsync("SendMessage", User.Id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Connecting error" + ex.Message);
+        }
     }
 
     private async Task GetChatsAsync()

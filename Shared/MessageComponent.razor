@@ -17,7 +17,7 @@
     [Parameter]
     public Message Message { get; set; } = null!;
     [Parameter]
-    public ICollection<User> Users { get; set; } = null!;
+    public ICollection<ChatUser> Users { get; set; } = null!;
 
     private string GetUserName(string userId)
     {

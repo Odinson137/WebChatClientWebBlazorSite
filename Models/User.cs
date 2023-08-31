@@ -18,4 +18,10 @@
         public string Id { get; set; } = null!;
         public string Token { get; set; } = null!;
     }
+
+    public class ChatUser
+    {
+        public string Id { get; set; } = null!;
+        public string UserName { get; set; } = null!;
+    }
 }
